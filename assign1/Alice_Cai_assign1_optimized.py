@@ -72,10 +72,11 @@ def load_file(filename):
         country_list = []
 
         for i in range(len(data)):
-            if i != 0: # exclude title row
+            if i != 0:  # exclude title row
                 country_list.append([data[i][0], data[i][1], float(data[i][2]), float(data[i][3])])
 
         return country_list
+
     elif filename == "product.txt":
 
         # products have spaces in between data
@@ -97,7 +98,6 @@ def load_file(filename):
         return data
 
 
-
 def find_trade_deficits(country_list):
     """
     input: country_list (list)
@@ -107,9 +107,10 @@ def find_trade_deficits(country_list):
 
     # trade deficit = imports - exports
     for i in range(len(country_list)):
-        country_list[i].append(country_list[i][2]-country_list[i][3])
+        country_list[i].append(country_list[i][2] - country_list[i][3])
 
     return country_list
+
 
 def get_trade_deficits(country_list):
     """
@@ -118,6 +119,7 @@ def get_trade_deficits(country_list):
     return: country_list[4] (float)
     """
     return country_list[4]
+
 
 def sort_deficits(country_list):
     """
@@ -130,6 +132,7 @@ def sort_deficits(country_list):
     country_list.sort(reverse=True, key=get_trade_deficits)
 
     return country_list
+
 
 def show_deficits(country_list):
     """
@@ -165,6 +168,17 @@ def function_A():
     show_deficits(country_list)
     return country_list
 
+"""
+### --- SECTION B --- ###
+1. Products per industry
+    2. Exclusive products
+    3. Countries with most exclusive products
+    4. Industries with the fewest exclusives
+    5. Most productive countries
+    6. Most widespread products
+"""
+
+### --- Section B Question 1 --- ###
 def products_per_industry(product_list):
     """
     input: product_list (list)
@@ -192,6 +206,7 @@ def products_per_industry(product_list):
 
     return industry_list, industry_number
 
+
 def show_product_per_industry(industry_list, industry_number):
     """
     input: industry_list (list), industry_number (list)
@@ -212,12 +227,16 @@ def show_product_per_industry(industry_list, industry_number):
         print(f"| {industry_list[i]:<16}" + f"|" + f"{industry_number[i]:>19}" + " |")
     print(header)
 
+
+### --- Section B Question 2 --- ###
+
 def get_product_name(exclusive_products):
     """
     input: exclusive_products (list)
     return: returns the product name from PID
     """
     return exclusive_products[1]
+
 
 def exclusive_product(product_list, product_country_list, country_list):
     """
@@ -226,20 +245,6 @@ def exclusive_product(product_list, product_country_list, country_list):
     process: finds which products are exclusive
     return: exclusive_products (sorted list, alphabetical by product name)
     [[PID, product name, product country name], etc.]
-    """
-
-    """
-    
-    exclusive_products = []
-    exclusive_countries = []
-    
-    for i in range(len(product_country_list)):
-        if product_country_list[i][0] not in exclusive_products:
-            exclusive_products.append(product_country_list[i][0])
-            exclusive_countries.append(product_country_list[i][1])
-        else:
-            if product_country_list[i][1] == 
-            
     """
 
     # find exclusive products with which countries produce it
@@ -252,7 +257,8 @@ def exclusive_product(product_list, product_country_list, country_list):
             # go down list
             for j in range(len(product_country_list)):
                 # if the product ID matches and the country is different
-                if product_country_list[j][0] == product_country_list[i][0] and product_country_list[j][1] != product_country_list[i][1]:
+                if product_country_list[j][0] == product_country_list[i][0] and product_country_list[j][1] != \
+                        product_country_list[i][1]:
                     # no longer exclusive
                     exclusive = False
             if exclusive:
@@ -281,6 +287,7 @@ def exclusive_product(product_list, product_country_list, country_list):
 
     return exclusive_products
 
+
 def show_exclusive_products(exclusive_products):
     """
     input: exclusive_products (list) [[PID, product name, country], etc.]
@@ -299,69 +306,138 @@ def show_exclusive_products(exclusive_products):
 
     # print table information
     for i in range(len(exclusive_products)):
-        print(f"| {exclusive_products[i][0]:<13}" + f"| " + f"{exclusive_products[i][1]:<48}" + " | " + f"{exclusive_products[i][2]:<40}" + " |")
+        print(
+            f"| {exclusive_products[i][0]:<13}" + f"| " + f"{exclusive_products[i][1]:<48}" + " | " + f"{exclusive_products[i][2]:<40}" + " |")
     print(header)
 
-def most_exclusive_products(exclusive_products):
+### --- Section B Question 3 --- ###
+
+### Common Functions
+def count(item_list, index):
     """
-    input: exclusive_products (list) [[PID, product name, country], etc.]
-    Find the country with the most exclusive products. if there is a tie, sort alphabetically.
-    return: top result for most exclusive product (list)
+    input:
+    - item_list (list)
+        The list of items to iterate through
+    - index (int)
+        The index of the item to which the count is assigned to (such as industry or country).
+        Of form list[i][index].
+
+    process: creates a dictionary with key: item value: count
+    - count (int)
+        The number of counts belonging to an item
+
+    returns: count_dict (dict)
     """
 
-    # Try to use a dictionary this time
-    exclusive_products_dict = {}
+    # create the dictionary
+    count_dict = {}
 
-    # get all countries with exclusive products
-    for i in range(len(exclusive_products)):
-        if exclusive_products[i][2] not in exclusive_products_dict.keys():
-            exclusive_products_dict[exclusive_products[i][2]] = 1
+    # get the counts for the item
+    for i in range(len(item_list)):
+        if item_list[i][index] not in count_dict.keys():
+            count_dict[item_list[i][index]] = 1
         else:
-            exclusive_products_dict[exclusive_products[i][2]] += 1
+            count_dict[item_list[i][index]] += 1
 
-    # sort dictionary by most and alphabetical
-    sorted_exclusive_products = []
-    for key, value in sorted(exclusive_products_dict.items(), key = lambda item: item[1], reverse = True):
-        sorted_exclusive_products.append([key, value])
+    return count_dict
 
-    # get sublist of highest
-    highest_products = []
-    for i in range(len(sorted_exclusive_products)):
-        if sorted_exclusive_products[i][1] == sorted_exclusive_products[0][1]:
-            highest_products.append(sorted_exclusive_products[i])
-
-    # sort alphabetically
-    highest_products.sort()
-
-    return highest_products[0]
-
-def show_most_exclusive_products(highest):
+def sort_dict(dict):
     """
-    input: [country, number of exclusive products]
-    process: prints out a table with the information
+    input: dict (dict)
+    process: sorts the dictionary in the descending order, by value
+    return: sorted_list (list)
     """
-    # print header
+
+    sorted_list = []
+    for key, value in sorted(dict.items(), key=lambda item: item[1], reverse=True):
+        sorted_list.append([key, value])
+
+    return sorted_list
+
+def sublist(list, order):
+    """
+    list: list (list), order
+        - list: of form [[item, count], [item2, count], etc]
+        - if order True: take sublist of ties between the highest entries
+        - if order False: take sublist of ties between the lowest entries
+    process: creates a sublist of the highest or lowest entries in the list
+    return: sublist (list)
+    """
+
+    sublist = []
+    if not order:
+        list.reverse()
+    for i in range(len(list)):
+        if list[i][1] == list[0][1]:
+            sublist.append(list[i])
+
+    return sublist
+
+def print_table(cols, length, titles, data):
+    """
+    input:
+    - cols (int): the number of columns wanted
+    - length (list): [length of column 1, length of column 2, etc.]
+    - titles (list): [title for column 1, title for column 2, etc.]
+    - data (list): a list of data to populate the table with
+    process: prints a table with the specified data
+    return: none
+    """
+
+    # construct the header
     header = ""
+    if cols == 2:
+        for i in range(sum(length) + 7):
+            header += "-"
+    elif cols == 3:
+        for i in range(sum(length) + 10):
+            header += "-"
 
-    for i in range(50):  # length of table
-        header += "-"
+    # print the first row (title row)
     print(header)
-    print(f"{'| Country':<18}" + f"{'| No. of Exclusive Products':<30} | ")
+    if cols == 2:
+        print('| ' + f"{titles[0]:<{length[0]}}" + " | " + f"{titles[1]:<{length[1]}}" + " |")
+    elif cols == 3:
+        print('| ' + f"{titles[0]:<{length[0]}}" + " | " + f"{titles[1]:<{length[1]}}" + " | " + f"{titles[2]:<{length[2]}}")
     print(header)
 
     # print table information
-    print(f"| {highest[0]:<16}" + f"| " + f"{highest[1]:<28}" + " | " )
+    if cols == 2:
+        for i in range(len(data)):
+            print("| " + f"{data[i][0]:<{length[0]}}" + f" | " + f"{data[i][1]:<{length[1]}}" + " |")
+    elif cols == 3:
+        for i in range(len(data)):
+            print("| " + f"{data[i][0]:<{length[0]}}" + f" | " + f"{data[i][1]:<{length[1]}}" + " | " + f"{data[i][2]:<{length[2]}}" + " |")
     print(header)
 
-def fewest_exclusives(product_list, exclusive_products):
+### Question 3 Functions
+
+def find_most_exclusive_products(exclusive_products):
+    """
+    input: exclusive_products (list) [[PID, product name, country], etc.]
+    Find the country with the most exclusive products. if there is a tie, sort alphabetically. Print out in a table.
+    return: none
+    """
+
+    # get the number of exclusive products per country in a dictionary
+    exclusive_products_dict = count(exclusive_products, 2)
+    # sort the dictionary in descending order
+    sorted_exclusive_products = sort_dict(exclusive_products_dict)
+    # get the sublist of countries with the highest number of exclusive products
+    highest_products = sublist(sorted_exclusive_products, True)
+    # sort alphabetically
+    highest_products.sort()
+    # print out in a table
+    print_table(2, [15, 28], ['Country', 'No. of Exclusive Products'], highest_products)
+
+### --- Section B Question 4 --- ###
+
+def find_fewest_exclusives(product_list, exclusive_products):
     """
     input: product_list (list), exclusive_products  [[PID, product name, country], etc.]
     process: find the industry with the least number of exclusive products
     return: lowest_industries (list)
     """
-
-    # a dictionary with key: industry value: number of exclusive products
-    exclusive_by_industry = {}
 
     # match exclusive products with industry
     for i in range(len(exclusive_products)):
@@ -369,115 +445,100 @@ def fewest_exclusives(product_list, exclusive_products):
             if exclusive_products[i][0] == product_list[j][0]:
                 exclusive_products[i].append(product_list[j][1])
 
-    # count number of exclusive products per industry
-    for i in range(len(exclusive_products)):
-        if exclusive_products[i][3] not in exclusive_by_industry.keys():
-            exclusive_by_industry[exclusive_products[i][3]] = 1
-        else:
-            exclusive_by_industry[exclusive_products[i][3]] += 1
-
-    # sort dictionary by least number of exclusive products
-    sorted_exclusive_by_industry = []
-    for key, value in sorted(exclusive_by_industry.items(), key=lambda item: item[1]):
-        sorted_exclusive_by_industry.append([key, value])
-
-    # get sublist of lowest
-    lowest_industries = []
-    for i in range(len(sorted_exclusive_by_industry)):
-        if sorted_exclusive_by_industry[i][1] == sorted_exclusive_by_industry[0][1]:
-            lowest_industries.append(sorted_exclusive_by_industry[i])
-
+    # get the number of exclusive products per industry in a dictionary
+    exclusive_by_industry = count(exclusive_products, 3)
+    # sort the dictionary in descending order
+    sorted_exclusive_by_industry = sort_dict(exclusive_by_industry)
+    # get the sublist of countries with the lowest number of exclusive products
+    lowest_industries = sublist(sorted_exclusive_by_industry, False)
     # sort alphabetically
     lowest_industries.sort()
+    # print out in a table
+    print_table(2, [15, 28], ['Industry', 'No. of Exclusive Products'], lowest_industries)
 
-    return lowest_industries[0]
+### --- Section B Question 5 --- ###
 
-def show_fewest_exclusives(lowest):
-    """
-    input: lowest [industry, number of exclusive products]
-    process: prints out a table with the information
-    return: none
-    """
-    # print header
-    header = ""
-
-    for i in range(50):  # length of table
-        header += "-"
-    print(header)
-    print(f"{'| Industry':<18}" + f"{'| No. of Exclusive Products':<30} | ")
-    print(header)
-
-    # print table information
-    print(f"| {lowest[0]:<16}" + f"| " + f"{lowest[1]:<28}" + " | ")
-    print(header)
-
-def most_productive_country(product_country_list, country_list):
+def find_most_productive_country(product_country_list, country_list):
     """
     input: product_country_list (list), country_list (list)
-    process: finds the most productive country
-    return: highest_countries (list)
-    """
-
-    # dictionary with key: country code value: number of products
-    most_productive = {}
-
-    # count number of products per country
-    for i in range(len(product_country_list)):
-        if product_country_list[i][1] not in most_productive.keys():
-            most_productive[product_country_list[i][1]] = 1
-        else:
-            most_productive[product_country_list[i][1]] += 1
-
-    # sort dictionary by least number of exclusive products
-    sorted_most_productive = []
-    for key, value in sorted(most_productive.items(), key=lambda item: item[1], reverse=True):
-        sorted_most_productive.append([key, value])
-
-    # get sublist of highest
-    highest_countries = []
-    for i in range(len(sorted_most_productive)):
-        if sorted_most_productive[i][1] == sorted_most_productive[0][1]:
-            highest_countries.append(sorted_most_productive[i])
-
-    # sort alphabetically
-    highest_countries.sort()
-
-    # match with country name
-    for i in range(len(highest_countries)):
-        for j in range(len(country_list)):
-            if highest_countries[i][0] == country_list[j][0]:
-                highest_countries[i].append(country_list[j][1])
-
-    return highest_countries[0]
-
-def show_most_productive_country(highest):
-    """
-    input: highest [country code, number of products, country name]
-    process: prints out a table with the information
+    process: finds the most productive country and prints in a table
     return: none
     """
-    # print header
-    header = ""
 
-    for i in range(50):  # length of table
-        header += "-"
-    print(header)
-    print(f"{'| Country':<18}" + f"{'| No. of Products':<30} | ")
-    print(header)
+    # get the number of products per country in a dictionary
+    most_productive = count(product_country_list, 1)
+    # sort the dictionary in descending order
+    sorted_most_productive = sort_dict(most_productive)
+    # get the sublist of countries with the most amount of products
+    most_productive_countries = sublist(sorted_most_productive, True)
+    # sort alphabetically
+    most_productive_countries.sort()
+    # match with country name
+    for i in range(len(most_productive_countries)):
+        for j in range(len(country_list)):
+            if most_productive_countries[i][0] == country_list[j][0]:
+                most_productive_countries[i][0] = country_list[j][1]
+    # print out in a table
+    print_table(2, [15, 20], ['Country', 'Number of Products'], most_productive_countries)
 
-    # print table information
-    print(f"| {highest[2]:<16}" + f"| " + f"{highest[1]:<28}" + " | " )
-    print(header)
+### --- Section B Question 6 --- ###
+
+def find_most_widespread_products(product_country_list, product_list):
+    """
+    input: product_country_list (list), product_list (list)
+    """
+
+    # get the number of countries per product in a dictionary
+    most_widespread = count(product_country_list, 0)
+    # sort the dictionary in descending order
+    sorted_most_widespread = sort_dict(most_widespread)
+    # get the sublist of products with the most widespread countries
+
+    print(sorted_most_widespread)
+
+    # get the top 3 values
+    top_values = []
+    tally = 0
+    for i in range(len(sorted_most_widespread)):
+        if tally <= 3:
+            # top value
+            if tally == 0:
+                top_values.append(sorted_most_widespread[0][1])
+                tally += 1
+            # 2nd top value
+            if tally == 1 and sorted_most_widespread[i][1] < top_values[0]:
+                top_values.append(sorted_most_widespread[i][1])
+                tally += 1
+            # 3rd top value
+            if tally == 2 and sorted_most_widespread[i][1] < top_values[1]:
+                top_values.append(sorted_most_widespread[i][1])
+                tally += 1
+
+    print(top_values)
+
+    # get a sublist with those values
+    top_widespread_products = []
+    for i in range(len(sorted_most_widespread)):
+        if sorted_most_widespread[i][1] in top_values:
+            top_widespread_products.append(sorted_most_widespread[i])
+
+    # match with product name
+    for i in range(len(top_widespread_products)):
+        for j in range(len(product_list)):
+            if top_widespread_products[i][0] == product_list[j][0]:
+                top_widespread_products[i][0] = product_list[j][2]
+
+    # sort by number and then product name alphabetically
+    top_widespread_products.sort(key=lambda item: (-item[1], item[0]), reverse=False)
+
+    # print out in a table
+    print_table(2, [50, 15], ['Product Name', 'Number of Countries'], top_widespread_products)
+
+### --- Section B Master Function --- ###
 
 def function_B(country_list):
     """
     A function for part B of the assignment.
-    1. Products per industry
-    2. Exclusive products
-    3. Countries with most exclusive products
-    4. Industries with the fewest exclusives
-    5. Most productive countries
-    6. Most widespread products
     """
 
     ### --- Products per Industry --- ###
@@ -491,20 +552,24 @@ def function_B(country_list):
     show_exclusive_products(exclusive_products)
 
     ### --- Countries with most exclusive products --- ###
-    highest = most_exclusive_products(exclusive_products)
-    show_most_exclusive_products(highest)
+    find_most_exclusive_products(exclusive_products)
 
     ### --- Industries with Fewest Exclusives --- ###
-    lowest = fewest_exclusives(product_list, exclusive_products)
-    show_fewest_exclusives(lowest)
+    find_fewest_exclusives(product_list, exclusive_products)
 
     ### --- Most Productive Countries --- ###
-    most_productive = most_productive_country(product_country_list, country_list)
-    show_most_productive_country(most_productive)
+    find_most_productive_country(product_country_list, country_list)
 
     ### --- Most Widespread Products --- ###
+    find_most_widespread_products(product_country_list, product_list)
 
 if __name__ == "__main__":
     country_list = function_A()
     function_B(country_list)
 
+"""
+### --- SECTION C --- ###
+1. Outrageous Tarrifs: identify countries that face 50% on one or more of their industries
+2. Tariff-Free Countries: identify countries with no tariffs at all imposed on them
+3. Selective Tariff Countries: identify countries that have tariffs on some industries but not on others
+"""
