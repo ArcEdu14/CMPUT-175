@@ -92,9 +92,33 @@ def load_file(filename):
             data[i] = data[i].strip()
             data[i] = data[i].split(", ")
 
+        # exclude title row
         data = data[1:]
+
+        # convert to int
         for i in range(len(data)):
-            data[i][2] = int(data[i][2])  # exclude title row
+            data[i][2] = int(data[i][2])
+        return data
+
+    elif filename == "tariff.txt":
+        # spaces present between 1st and second col, not between 2nd and 3rd
+        for i in range(len(data)):
+            data[i] = data[i].split(",")
+
+        # exclude title row
+        data = data[1:]
+
+        # convert percentages to int
+        for i in range(len(data)):
+            for j in range(len(data[i])):
+                data[i][j] = data[i][j].strip()
+            data[i][2] = int(data[i][2])
+
+        return data
+
+    elif filename == "shopping_list.txt":
+        for i in range(len(data)):
+            data[i] = data[i].strip()
         return data
 
 
@@ -158,15 +182,13 @@ def show_deficits(country_list):
     print(header)
 
 
-def function_A():
+def function_A(country_list):
     """
     A function for part A of the assignment.
     """
-    country_list = load_file("country.txt")
     country_list = find_trade_deficits(country_list)
     country_list = sort_deficits(country_list)
     show_deficits(country_list)
-    return country_list
 
 """
 ### --- SECTION B --- ###
@@ -278,9 +300,9 @@ def exclusive_product(product_list, product_country_list, country_list):
                 exclusive_products[i].append(country_list[j][1])
 
     # check for countries without name matches
-    for i in range(len(exclusive_products)):
-        if len(exclusive_products[i]) == 2:
-            exclusive_products[i].append(exclusive_countries[i])
+    for country in exclusive_products:
+        if len(country) == 2:
+            exclusive_products.remove(country)
 
     # sort alphabetically by product name
     exclusive_products.sort(key=get_product_name)
@@ -306,8 +328,7 @@ def show_exclusive_products(exclusive_products):
 
     # print table information
     for i in range(len(exclusive_products)):
-        print(
-            f"| {exclusive_products[i][0]:<13}" + f"| " + f"{exclusive_products[i][1]:<48}" + " | " + f"{exclusive_products[i][2]:<40}" + " |")
+        print(f"| {exclusive_products[i][0]:<13}" + f"| " + f"{exclusive_products[i][1]:<48}" + " | " + f"{exclusive_products[i][2]:<40}" + " |")
     print(header)
 
 ### --- Section B Question 3 --- ###
@@ -386,6 +407,9 @@ def print_table(cols, length, titles, data):
 
     # construct the header
     header = ""
+    if cols == 1:
+        for i in range(sum(length) + 4):
+            header += "-"
     if cols == 2:
         for i in range(sum(length) + 7):
             header += "-"
@@ -395,14 +419,19 @@ def print_table(cols, length, titles, data):
 
     # print the first row (title row)
     print(header)
-    if cols == 2:
+    if cols == 1:
+        print('| ' + f"{titles[0]:<{length[0]}}" + " |")
+    elif cols == 2:
         print('| ' + f"{titles[0]:<{length[0]}}" + " | " + f"{titles[1]:<{length[1]}}" + " |")
     elif cols == 3:
         print('| ' + f"{titles[0]:<{length[0]}}" + " | " + f"{titles[1]:<{length[1]}}" + " | " + f"{titles[2]:<{length[2]}}")
     print(header)
 
     # print table information
-    if cols == 2:
+    if cols == 1:
+        for i in range(len(data)):
+            print('| ' + f"{data[i]:<{length[0]}}" + " |")
+    elif cols == 2:
         for i in range(len(data)):
             print("| " + f"{data[i][0]:<{length[0]}}" + f" | " + f"{data[i][1]:<{length[1]}}" + " |")
     elif cols == 3:
@@ -492,10 +521,7 @@ def find_most_widespread_products(product_country_list, product_list):
     most_widespread = count(product_country_list, 0)
     # sort the dictionary in descending order
     sorted_most_widespread = sort_dict(most_widespread)
-    # get the sublist of products with the most widespread countries
-
-    print(sorted_most_widespread)
-
+    ### get the sublist of products with the most widespread countries
     # get the top 3 values
     top_values = []
     tally = 0
@@ -513,8 +539,6 @@ def find_most_widespread_products(product_country_list, product_list):
             if tally == 2 and sorted_most_widespread[i][1] < top_values[1]:
                 top_values.append(sorted_most_widespread[i][1])
                 tally += 1
-
-    print(top_values)
 
     # get a sublist with those values
     top_widespread_products = []
@@ -536,18 +560,16 @@ def find_most_widespread_products(product_country_list, product_list):
 
 ### --- Section B Master Function --- ###
 
-def function_B(country_list):
+def function_B(product_list, product_country_list, country_list):
     """
     A function for part B of the assignment.
     """
 
     ### --- Products per Industry --- ###
-    product_list = load_file("product.txt")
     industry_list, industry_number = products_per_industry(product_list)
     show_product_per_industry(industry_list, industry_number)
 
     ### --- Exclusive Products --- ###
-    product_country_list = load_file("product_country.txt")
     exclusive_products = exclusive_product(product_list, product_country_list, country_list)
     show_exclusive_products(exclusive_products)
 
@@ -563,13 +585,284 @@ def function_B(country_list):
     ### --- Most Widespread Products --- ###
     find_most_widespread_products(product_country_list, product_list)
 
-if __name__ == "__main__":
-    country_list = function_A()
-    function_B(country_list)
+    return product_list
 
 """
 ### --- SECTION C --- ###
-1. Outrageous Tarrifs: identify countries that face 50% on one or more of their industries
+1. Outrageous Tariffs: identify countries that face 50% on one or more of their industries
 2. Tariff-Free Countries: identify countries with no tariffs at all imposed on them
 3. Selective Tariff Countries: identify countries that have tariffs on some industries but not on others
 """
+
+### Common Functions
+def match_country(code_list, country_list):
+    for i in range(len(code_list)):
+        for j in range(len(country_list)):
+            if code_list[i] == country_list[j][0]:
+                code_list[i] = country_list[j][1]
+    return code_list
+
+### --- Section C Question 1 --- ###
+def identify_outrageous_tariffs(tariff_list, country_list):
+    """
+    input: tariff_list (list), country_list (list)
+    process: finds the countries with tariffs over 50% and prints out in a nice table
+    return: tariffs (list of list containing dictionary)
+    """
+
+    # a list of lists containing dictionaries
+    # [[country, {industry: tariff, industry2: tariff2}], [country2, {industry: tariff}], etc.]
+    tariffs = []
+
+    # populate the list with countries
+    for i in range(len(tariff_list)):
+        if [tariff_list[i][0], {}] not in tariffs:
+            tariffs.append([tariff_list[i][0], {}])
+
+    # populate the country sublists with dictionaries
+    for i in range(len(tariffs)):
+        for j in range(len(tariff_list)):
+            if tariff_list[j][0] == tariffs[i][0]:
+                tariffs[i][1][tariff_list[j][1]] = tariff_list[j][2]
+
+    # identify outrageous countries
+    outrageous_countries = set()
+    for i in range(len(tariffs)):
+        for value in tariffs[i][1].values():
+            if value > 50:
+                outrageous_countries.add(tariffs[i][0])
+
+    # convert set back into list and sort
+    outrageous_countries = list(outrageous_countries)
+    outrageous_countries.sort()
+
+    # match country code with country
+    outrageous_countries = match_country(outrageous_countries, country_list)
+
+    # print countries with outrageous tariffs
+    print_table(1, [40], ['Country'], outrageous_countries)
+
+    return tariffs
+
+### --- Section C Question 2 --- ###
+def find_tariffed_countries(tariff_list):
+    tariffed_countries = set()
+    for i in range(len(tariff_list)):
+        if tariff_list[i][2] != 0:
+            tariffed_countries.add(tariff_list[i][0])
+    return tariffed_countries
+
+def identify_tariff_free(tariff_list, country_list):
+    """
+    input: tariff_list (list), country_list (list)
+    process: finds a list of tariff-free countries
+    return: none
+    """
+    tariff_free = set()
+    for i in range(len(country_list)):
+        if country_list[i][0] not in find_tariffed_countries(tariff_list):
+            tariff_free.add(country_list[i][0])
+
+    # convert back into sorted list
+    tariff_free = list(tariff_free)
+    tariff_free.sort()
+
+    # match to country name
+    tariff_free = match_country(tariff_free, country_list)
+
+    # print table of tariff-free
+    print_table(1, [40], ['Country'], tariff_free)
+
+### --- Section C Question 3 --- ###
+
+def identify_select_industries(tariff_masterlist, country_list):
+    """
+    input: tariff_masterlist (list of list containing dictionary)
+    process: find and printindustries by country that are tariff-free
+    return: none
+    """
+
+    select_industries = []
+
+    # find industries without any tariffs
+    for i in range(len(tariff_masterlist)):
+        for industry in ['Agriculture', 'Manufacturing', 'Tech', 'Pharmacy', 'Food']:
+            if industry not in tariff_masterlist[i][1].keys():
+                select_industries.append([tariff_masterlist[i][0], industry])
+
+    # match country code to country name
+    for i in range(len(select_industries)):
+        select_industries[i] = match_country(select_industries[i], country_list)
+
+    # sort list
+    select_industries.sort(key=lambda item: (item[0], item[1]))
+
+    # print out table
+    print_table(2, [40, 40], ['Country', 'Industry'], select_industries)
+
+def function_C(tariff_list, country_list):
+    """
+    Master function for section C
+    """
+    tariff_masterlist = identify_outrageous_tariffs(tariff_list, country_list)
+    identify_tariff_free(tariff_list, country_list)
+    identify_select_industries(tariff_masterlist, country_list)
+    return tariff_masterlist
+
+"""
+### --- SECTION D --- ###
+Cheapest import strategy based on tariffs
+
+Columns:
+- product name 
+- # of countries that produce the product
+- country with the best price for the product including tariffs
+- actual cost of product without tariffs
+- tariff %
+- tariff value
+- total cost including tariffs
+"""
+
+def match_product(code_list, product_list):
+    """
+    input: code_list (list of codes to match to product name), product_list (list)
+    process: replaces product codes with product names for new list
+    return: code_list (2d list of names)
+    """
+    new_list = []
+    for i in range(len(code_list)):
+        for j in range(len(product_list)):
+            if code_list[i] == product_list[j][0]:
+                new_list.append([product_list[j][2]])
+
+    return new_list
+
+def get_industry(code, product_list):
+    for i in range(len(product_list)):
+        if code == product_list[i][0]:
+            return product_list[i][1]
+
+def find_countries_selling_product(table_list, shopping_list, product_country_list):
+    """
+    input: table_list (list of product names), shopping_list (list of PID), product_country_list (list of PIDs and countries)
+    process: counts the number of countries that produce a product
+    return: table_list (updated list)
+    """
+
+    # find the countries that sell the product
+    countries_that_sell = []
+    for i in range(len(shopping_list)):
+        countries_that_sell.append([shopping_list[i], get_industry(shopping_list[i], product_list), {}])
+
+    # populate with all the countries that sell the products
+    for i in range(len(countries_that_sell)):
+        for j in range(len(product_country_list)):
+            if countries_that_sell[i][0] == product_country_list[j][0]:
+                countries_that_sell[i][2][product_country_list[j][1]] = product_country_list[j][2]
+
+    # I did this part before I found the countries that sell the product which is why its weird
+    # get the number of countries selling product in a dictionary
+    countries_selling_product_dict = count(product_country_list, 0)
+
+    # search up shopping list PIDs in dictionary
+    for i in range(len(shopping_list)):
+        # append to the master list
+        table_list[i].append(countries_selling_product_dict[shopping_list[i]])
+
+    return table_list, countries_that_sell
+
+def find_actual_cost(product, country_code, product_country_list):
+    """
+
+    """
+    for i in range(len(product_country_list)):
+        if product_country_list[i][0] == product and product_country_list[i][1] == country_code:
+            return product_country_list[i][2]
+
+def get_tariff_rate(country, industry, tariff_masterlist):
+    for i in range(len(tariff_masterlist)):
+        if country == tariff_masterlist[i][0]:
+            rate = tariff_masterlist[i][1][industry]
+            return rate/100
+def apply_tariffs(industry, dict, tariff_masterlist):
+    """
+    give dict of form country: cost
+    """
+    new_dict = {}
+    for key, value in dict.items():
+        new_dict[key] = value * (1+get_tariff_rate(key, industry, tariff_masterlist))
+
+    return new_dict
+
+def calculate_new_price(countries_that_sell, tariff_masterlist):
+    """
+    Calculates the new price for each country per product after applying tariffs
+    """
+    for i in range(len(countries_that_sell)):
+        countries_that_sell[i].append(apply_tariffs(countries_that_sell[i][1], countries_that_sell[i][2], tariff_masterlist))
+
+    return countries_that_sell
+
+def choose_best_country(countries_that_sell):
+    """
+    From the tariffed prices, chooses the country and price that is the lowest and adds it to the list
+    """
+    print(countries_that_sell)
+    for i in range(len(countries_that_sell)):
+        all_prices = []
+        for country, price in countries_that_sell[i][3].items():
+            all_prices.append([country, price])
+        best_price = all_prices[0][1]
+        best_country = None
+        for j in range(len(all_prices)):
+            if all_prices[j][1] < best_price:
+                best_price = all_prices[j][1]
+                best_country = all_prices[j][0]
+        countries_that_sell[i].append([best_price, best_country])
+
+    return countries_that_sell
+
+def apply_best_country(countries_that_sell, table_list):
+    print(countries_that_sell)
+    print(table_list)
+    for i in range(len(table_list)):
+        table_list[i].append(countries_that_sell[i][4][0])
+        table_list[i].append(countries_that_sell[i][2][]) # need to get the actual cost of the product chosen
+    print(table_list)
+
+def function_D(product_list, shopping_list, product_country_list, tariff_masterlist):
+    """
+    Master function for section D
+    """
+    # product name
+    table_list = match_product(shopping_list, product_list)
+
+    # countries
+    table_list, countries_that_sell = find_countries_selling_product(table_list, shopping_list, product_country_list)
+
+    # calculate tariffs and choose best country
+    countries_that_sell = calculate_new_price(countries_that_sell, tariff_masterlist)
+    countries_that_sell = choose_best_country(countries_that_sell)
+
+    # add best country to table list
+    apply_best_country(countries_that_sell, table_list)
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    # Load all files
+    country_list = load_file("country.txt")
+    product_list = load_file("product.txt")
+    product_country_list = load_file("product_country.txt")
+    shopping_list = load_file("shopping_list.txt")
+    tariff_list = load_file("tariff.txt")
+
+    # Run all functions
+    function_A(country_list)
+    function_B(product_list, product_country_list, country_list)
+    tariff_masterlist = function_C(tariff_list, country_list)
+    function_D(product_list, shopping_list, product_country_list, tariff_masterlist)

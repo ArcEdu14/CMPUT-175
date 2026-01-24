@@ -204,13 +204,26 @@ def find_transfer(routes, codes, starting_point, destination):
 def main():
     
     ## --- SETUP --- ##
-    # get the starting point and destination from user
-    starting_point = input("Enter Starting Point: ").title()  # stop names are in title case
-    destination = input("Enter Destination: ").title()
-
     # load routes and codes files into dictionaries
     routes = load_file("routes.txt")
-    codes = load_file("codes.txt")    
+    codes = load_file("codes.txt")
+
+    # input validation
+    correct_inputs = []
+    for key, value in codes.items():
+        correct_inputs.append(value)
+
+    # get the starting point and destination from user
+    # have to do input validation for route or destination
+    starting_point = input("Enter Starting Point: ").title()  # stop names are in title case
+    while starting_point not in correct_inputs:
+        starting_point = input("Enter Starting Point: ").title()
+
+    destination = input("Enter Destination: ").title()
+    while destination not in correct_inputs:
+        destination = input("Enter Destination: ").title()
+
+
 
     ## --- PROCESS --- ##
     # find direct route
