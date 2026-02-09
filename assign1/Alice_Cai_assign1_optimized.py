@@ -139,7 +139,7 @@ def find_trade_deficits(country_list):
 def get_trade_deficits(country_list):
     """
     input: country_list (list)
-    process: returns the trade deficit of a country
+    process: returns the trade deficit of a country (used for sorting)
     return: country_list[4] (float)
     """
     return country_list[4]
@@ -556,7 +556,7 @@ def find_most_widespread_products(product_country_list, product_list):
     top_widespread_products.sort(key=lambda item: (-item[1], item[0]), reverse=False)
 
     # print out in a table
-    print_table(2, [50, 15], ['Product Name', 'Number of Countries'], top_widespread_products)
+    print_table(2, [50, 20], ['Product Name', 'Number of Countries'], top_widespread_products)
 
 ### --- Section B Master Function --- ###
 
@@ -727,7 +727,7 @@ def match_product(code_list, product_list):
     """
     input: code_list (list of codes to match to product name), product_list (list)
     process: replaces product codes with product names for new list
-    return: code_list (2d list of names)
+    return: new_list (2d list of names)
     """
     new_list = []
     for i in range(len(code_list)):
@@ -738,6 +738,12 @@ def match_product(code_list, product_list):
     return new_list
 
 def get_industry(code, product_list):
+    """
+    Given a product code, finds the industry the product belongs to
+    :param code: PID (str)
+    :param product_list: list
+    :return: the industry the product belongs to (str)
+    """
     for i in range(len(product_list)):
         if code == product_list[i][0]:
             return product_list[i][1]
@@ -771,22 +777,26 @@ def find_countries_selling_product(table_list, shopping_list, product_country_li
 
     return table_list, countries_that_sell
 
-def find_actual_cost(product, country_code, product_country_list):
-    """
-
-    """
-    for i in range(len(product_country_list)):
-        if product_country_list[i][0] == product and product_country_list[i][1] == country_code:
-            return product_country_list[i][2]
-
 def get_tariff_rate(country, industry, tariff_masterlist):
+    """
+    Finds the tariff rate of an industry given the country and masterlist
+    :param country: the country you wish to buy from (str)
+    :param industry: the industry you wish to buy from (str)
+    :param tariff_masterlist: list
+    :return: the rate as a fraction
+    """
     for i in range(len(tariff_masterlist)):
         if country == tariff_masterlist[i][0]:
             rate = tariff_masterlist[i][1][industry]
             return rate/100
+
 def apply_tariffs(industry, dict, tariff_masterlist):
     """
-    give dict of form country: cost
+    Creates a new dictionary with each country's tariffed product price
+    :param industry: the industry of the product you want to buy from
+    :param dict: a dictionary to update with the tariff prices
+    :param tariff_masterlist: list
+    :return: a new dictionary with tariff rates applied to product prices
     """
     new_dict = {}
     for key, value in dict.items():
@@ -797,8 +807,12 @@ def apply_tariffs(industry, dict, tariff_masterlist):
 def calculate_new_price(countries_that_sell, tariff_masterlist):
     """
     Calculates the new price for each country per product after applying tariffs
+    :param countries_that_sell: list
+    :param tariff_masterlist: list
+    :return: updated countries_that_sell list
     """
     for i in range(len(countries_that_sell)):
+        # appending a new dictionary with updated prices to the end of each product entry
         countries_that_sell[i].append(apply_tariffs(countries_that_sell[i][1], countries_that_sell[i][2], tariff_masterlist))
 
     return countries_that_sell
@@ -806,45 +820,66 @@ def calculate_new_price(countries_that_sell, tariff_masterlist):
 def choose_best_country(countries_that_sell):
     """
     From the tariffed prices, chooses the country and price that is the lowest and adds it to the list
+    :param countries_that_sell: list
+    :return: updated countries_that_sell
     """
-    print(countries_that_sell)
     for i in range(len(countries_that_sell)):
         all_prices = []
         for country, price in countries_that_sell[i][3].items():
             all_prices.append([country, price])
+
+        # I think I could use min() here instead
         best_price = all_prices[0][1]
         best_country = None
         for j in range(len(all_prices)):
             if all_prices[j][1] < best_price:
                 best_price = all_prices[j][1]
                 best_country = all_prices[j][0]
-        countries_that_sell[i].append([best_price, best_country])
+        countries_that_sell[i].append([best_country, best_price])
 
     return countries_that_sell
 
 def apply_best_country(countries_that_sell, table_list):
-    print(countries_that_sell)
-    print(table_list)
+    print(f"Table List pre-update: {table_list}")
+
     for i in range(len(table_list)):
-        table_list[i].append(countries_that_sell[i][4][0])
-        table_list[i].append(countries_that_sell[i][2][]) # need to get the actual cost of the product chosen
-    print(table_list)
+        # best country
+        best_country = countries_that_sell[i][4][0]
+        print(best_country)
+        """
+        error: 3rd item on shopping list has weird list
+        ['SJL528', 'Pharmacy', {'SC':6814}, {'SC':7290.98}, [None, 7290.98]]
+        """
+        table_list[i].append(best_country)
+        # actual cost
+        table_list[i].append(countries_that_sell[i][2][best_country])
+        # tariff %
+
+        # tariff Val
+
+        # Total cost
+
+    print(f"Table List post-update: {table_list}")
 
 def function_D(product_list, shopping_list, product_country_list, tariff_masterlist):
     """
     Master function for section D
     """
-    # product name
+    # get the PIDs from shopping_list and replace with the actual product names
     table_list = match_product(shopping_list, product_list)
 
-    # countries
+    # find the number of countries that sell the product
+    # also creates a list countries_that_sell with each product in [product_name, industry, {country: price}]
     table_list, countries_that_sell = find_countries_selling_product(table_list, shopping_list, product_country_list)
 
-    # calculate tariffs and choose best country
+    # calculate tariffs and choose the best country
+    # after calculating tariffed prices, append to each entry countries_that_sell [product_name, industry, {country: price}, {country: new price}]
     countries_that_sell = calculate_new_price(countries_that_sell, tariff_masterlist)
+    # append the best country to buy from according to tariffed prices to each entry [best_country, best_price]
     countries_that_sell = choose_best_country(countries_that_sell)
+    print(f"Updated countries that sell: {countries_that_sell}")
 
-    # add best country to table list
+    # add the best country to table list
     apply_best_country(countries_that_sell, table_list)
 
 
@@ -862,7 +897,11 @@ if __name__ == "__main__":
     tariff_list = load_file("tariff.txt")
 
     # Run all functions
+    print("### --- SECTION A --- ###")
     function_A(country_list)
+    print("### --- SECTION B --- ###")
     function_B(product_list, product_country_list, country_list)
+    print("### --- SECTION C --- ###")
     tariff_masterlist = function_C(tariff_list, country_list)
+    print("### --- SECTION D --- ###")
     function_D(product_list, shopping_list, product_country_list, tariff_masterlist)
