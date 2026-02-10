@@ -416,6 +416,9 @@ def print_table(cols, length, titles, data):
     elif cols == 3:
         for i in range(sum(length) + 10):
             header += "-"
+    elif cols == 7:
+        for i in range(sum(length) + 22):
+            header += "-"
 
     # print the first row (title row)
     print(header)
@@ -425,6 +428,8 @@ def print_table(cols, length, titles, data):
         print('| ' + f"{titles[0]:<{length[0]}}" + " | " + f"{titles[1]:<{length[1]}}" + " |")
     elif cols == 3:
         print('| ' + f"{titles[0]:<{length[0]}}" + " | " + f"{titles[1]:<{length[1]}}" + " | " + f"{titles[2]:<{length[2]}}")
+    elif cols == 7:
+        print('| ' + f"{titles[0]:<{length[0]}}" + " | " + f"{titles[1]:<{length[1]}}" + " | " + f"{titles[2]:<{length[2]}}" + " | " + f"{titles[3]:<{length[3]}}" + " | " + f"{titles[4]:<{length[4]}}" + " | " + f"{titles[5]:<{length[5]}}" + " | " + f"{titles[6]:<{length[6]}}" + " |")
     print(header)
 
     # print table information
@@ -437,6 +442,9 @@ def print_table(cols, length, titles, data):
     elif cols == 3:
         for i in range(len(data)):
             print("| " + f"{data[i][0]:<{length[0]}}" + f" | " + f"{data[i][1]:<{length[1]}}" + " | " + f"{data[i][2]:<{length[2]}}" + " |")
+    elif cols == 7:
+        for i in range(len(data)):
+            print("| " + f"{data[i][0]:<{length[0]}}" + f" | " + f"{data[i][1]:<{length[1]}}" + " | " + f"{data[i][2]:<{length[2]}}" + " | " + f"{'$'}" + f"{data[i][3]:>{length[3]-1},.2f}" + " | " + f"{data[i][4]:>{length[4]-1},.1f}" + "%" " | " + f"{'$'}" + f"{data[i][5]:>{length[5]-1},.2f}" + " | " + f"{'$'}" + f"{data[i][6]:>{length[6]-1},.2f}" + " |")
     print(header)
 
 ### Question 3 Functions
@@ -596,6 +604,12 @@ def function_B(product_list, product_country_list, country_list):
 
 ### Common Functions
 def match_country(code_list, country_list):
+    """
+    Given the country code, finds the country name
+    :param code_list: list
+    :param country_list: list
+    :return: updated code_list
+    """
     for i in range(len(code_list)):
         for j in range(len(country_list)):
             if code_list[i] == country_list[j][0]:
@@ -830,7 +844,7 @@ def choose_best_country(countries_that_sell):
 
         # I think I could use min() here instead
         best_price = all_prices[0][1]
-        best_country = None
+        best_country = all_prices[0][0]
         for j in range(len(all_prices)):
             if all_prices[j][1] < best_price:
                 best_price = all_prices[j][1]
@@ -839,27 +853,57 @@ def choose_best_country(countries_that_sell):
 
     return countries_that_sell
 
-def apply_best_country(countries_that_sell, table_list):
-    print(f"Table List pre-update: {table_list}")
+def apply_best_country(countries_that_sell, table_list, tariff_masterlist, country_list):
+    """
+    Updates table_list with all the information needed for the table
+    :param countries_that_sell: list
+    :param table_list: list (to print)
+    :param tariff_masterlist: list
+    :return: table_list (list)
+    """
 
     for i in range(len(table_list)):
         # best country
         best_country = countries_that_sell[i][4][0]
-        print(best_country)
-        """
-        error: 3rd item on shopping list has weird list
-        ['SJL528', 'Pharmacy', {'SC':6814}, {'SC':7290.98}, [None, 7290.98]]
-        """
-        table_list[i].append(best_country)
-        # actual cost
+        table_list[i].append(match_country([best_country], country_list)[0])
+        # actual cost (original price)
         table_list[i].append(countries_that_sell[i][2][best_country])
         # tariff %
-
+        rate = get_tariff_rate(countries_that_sell[i][4][0], countries_that_sell[i][1], tariff_masterlist)
+        table_list[i].append(rate*100)
         # tariff Val
-
+        table_list[i].append(table_list[i][3]*rate)
         # Total cost
+        table_list[i].append(countries_that_sell[i][4][1])
 
-    print(f"Table List post-update: {table_list}")
+    return table_list
+
+def get_summary_data(table_list):
+    """
+    Calculates the summary data of cost before tariff, total tariff paid, and grand total
+    :param table_list: list
+    :return: list [cost before tariff, total tariff paid, grand total]
+    """
+    summary_data = [0, 0, 0]
+    for i in range(len(table_list)):
+        summary_data[0] += table_list[i][3]
+        summary_data[1] += table_list[i][5]
+        summary_data[2] += table_list[i][6]
+
+    return summary_data
+
+
+def print_shopping_list(table_list, summary_data):
+    """
+    Prints the shopping list table and summaries
+    :param table_list: list
+    :return:
+    """
+    print_table(7, [25, 10, 20, 15, 15, 15, 15], ['Product Name', 'Countries', 'Best Country', 'Actual Cost', 'Tariff %', 'Tariff Val', 'Total Cost'], table_list)
+
+    print(f"Cost before Tariff: $ {summary_data[0]:,.2f}")
+    print(f"Total Tariff Paid: $ {summary_data[1]:,.2f}")
+    print(f"Grand Total: $ {summary_data[2]:,.2f}")
 
 def function_D(product_list, shopping_list, product_country_list, tariff_masterlist):
     """
@@ -877,15 +921,15 @@ def function_D(product_list, shopping_list, product_country_list, tariff_masterl
     countries_that_sell = calculate_new_price(countries_that_sell, tariff_masterlist)
     # append the best country to buy from according to tariffed prices to each entry [best_country, best_price]
     countries_that_sell = choose_best_country(countries_that_sell)
-    print(f"Updated countries that sell: {countries_that_sell}")
 
     # add the best country to table list
-    apply_best_country(countries_that_sell, table_list)
+    table_list = apply_best_country(countries_that_sell, table_list, tariff_masterlist, country_list)
 
+    # get summary data
+    summary_data = get_summary_data(table_list)
 
-
-
-
+    # print it out
+    print_shopping_list(table_list, summary_data)
 
 
 if __name__ == "__main__":
