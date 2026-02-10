@@ -63,7 +63,7 @@ def load_file(filename):
             data[i] = data[i].split(",")
 
         # input validation
-        #data = check_country(data)
+        check_country(data)
 
         # Place country data into list
         # [country code, country name, imports, exports]
@@ -73,10 +73,7 @@ def load_file(filename):
 
         for i in range(len(data)):
             if i != 0:  # exclude title row
-                try:
-                    country_list.append([data[i][0], data[i][1], float(data[i][2]), float(data[i][3])])
-                except Exception:
-                    print("There has been an error!")
+                country_list.append([data[i][0], data[i][1], float(data[i][2]), float(data[i][3])])
 
         return country_list
 
@@ -87,6 +84,9 @@ def load_file(filename):
             data[i] = data[i].strip()
             data[i] = data[i].split(", ")
 
+        # input validation
+        check_product(data)
+
         return data[1:]  # exclude title row
 
     elif filename == "product_country.txt":
@@ -94,6 +94,9 @@ def load_file(filename):
         for i in range(len(data)):
             data[i] = data[i].strip()
             data[i] = data[i].split(", ")
+
+        # input validation
+        check_product_country(data)
 
         # exclude title row
         data = data[1:]
@@ -108,6 +111,9 @@ def load_file(filename):
         for i in range(len(data)):
             data[i] = data[i].split(",")
 
+        # input validation
+        check_tariff(data)
+
         # exclude title row
         data = data[1:]
 
@@ -120,6 +126,7 @@ def load_file(filename):
         return data
 
     elif filename == "shopping_list.txt":
+        check_shopping_list(data)
         for i in range(len(data)):
             data[i] = data[i].strip()
         return data
@@ -135,24 +142,60 @@ def check_float(data):
 def check_country(data):
     for i in range(len(data)):
         if i != 0:
-            print(data[i][2])
-            if data[i][2].isnumeric() and data[i][3].isnumeric():
-                pass
-            else:
+            try:
+                float(data[i][2])
+                float(data[i][3])
+            except Exception:
                 print("country.txt is not formatted properly!")
-    return data
-
-def check_tariff(data):
-    pass
+                print("Exiting the program...")
+                quit()
+            if data[i][0] == "" or data[i][1] == "" or len(data[i]) != 4:
+                print("country.txt is not formatted properly!")
+                print("Exiting the program...")
+                quit()
 
 def check_product(data):
-    pass
+    for i in range(len(data)):
+        if i != 0:
+            if data[i][0] == "" or data[i][1] == "" or data[i][2] == "" or len(data[i]) != 3:
+                print("product.txt is not formatted properly!")
+                print("Exiting the program...")
+                quit()
+
+def check_tariff(data):
+    for i in range(len(data)):
+        if i != 0:
+            try:
+                float(data[i][2])
+            except Exception:
+                print("tariff.txt is not formatted properly!")
+                print("Exiting the program...")
+                quit()
+            if data[i][0] == "" or data[i][1] == "" or len(data[i]) != 3:
+                print("tariff.txt is not formatted properly!")
+                print("Exiting the program...")
+                quit()
 
 def check_product_country(data):
-    pass
+    for i in range(len(data)):
+        if i != 0:
+            try:
+                float(data[i][2])
+            except Exception:
+                print("produce_country.txt is not formatted properly!")
+                print("Exiting the program...")
+                quit()
+            if data[i][0] == "" or data[i][1] == "" or len(data[i]) != 3:
+                print("product_country.txt is not formatted properly!")
+                print("Exiting the program...")
+                quit()
 
 def check_shopping_list(data):
-    pass
+    for i in range(len(data)):
+        if data[i] == "" or data[i] == "\n":
+            print("shopping_list.txt is not formatted properly!")
+            print("Exiting the program...")
+            quit()
 
 """
 ### --- SECTION A --- ###
