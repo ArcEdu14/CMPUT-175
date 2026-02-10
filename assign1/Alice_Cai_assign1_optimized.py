@@ -40,10 +40,7 @@ shopping_list.txt: the list of PIDs Terra Nova Trading purchases
 """
 
 """
-### --- SECTION A --- ###
-Goal: Calculate the trade deficit for each foreign country and return the top five countries in descending order. 
-
-Trade deficit can be calculated by import - export
+### --- FILE PROCESSING AND CHECK METHODS --- ###
 """
 
 def load_file(filename):
@@ -65,6 +62,9 @@ def load_file(filename):
             data[i] = data[i].strip()
             data[i] = data[i].split(",")
 
+        # input validation
+        #data = check_country(data)
+
         # Place country data into list
         # [country code, country name, imports, exports]
         # also convert import and export to floats
@@ -73,7 +73,10 @@ def load_file(filename):
 
         for i in range(len(data)):
             if i != 0:  # exclude title row
-                country_list.append([data[i][0], data[i][1], float(data[i][2]), float(data[i][3])])
+                try:
+                    country_list.append([data[i][0], data[i][1], float(data[i][2]), float(data[i][3])])
+                except Exception:
+                    print("There has been an error!")
 
         return country_list
 
@@ -121,6 +124,42 @@ def load_file(filename):
             data[i] = data[i].strip()
         return data
 
+def check_str(data):
+    return isinstance(data, str)
+
+def check_int(data):
+    return isinstance(data, int)
+
+def check_float(data):
+    return isinstance(data, float)
+def check_country(data):
+    for i in range(len(data)):
+        if i != 0:
+            print(data[i][2])
+            if data[i][2].isnumeric() and data[i][3].isnumeric():
+                pass
+            else:
+                print("country.txt is not formatted properly!")
+    return data
+
+def check_tariff(data):
+    pass
+
+def check_product(data):
+    pass
+
+def check_product_country(data):
+    pass
+
+def check_shopping_list(data):
+    pass
+
+"""
+### --- SECTION A --- ###
+Goal: Calculate the trade deficit for each foreign country and return the top five countries in descending order. 
+
+Trade deficit can be calculated by import - export
+"""
 
 def find_trade_deficits(country_list):
     """
