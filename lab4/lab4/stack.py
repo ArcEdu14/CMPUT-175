@@ -50,8 +50,8 @@ class Stack:
         # Check completed or full
         if self.size() == self.capacity or self.is_completed():
             raise Exception('Cannot push to a locked or full stack.')
-
-        self.items.append(item)
+        else:
+            self.items.append(item)
 
     def pop(self): 
         """
@@ -66,13 +66,12 @@ class Stack:
         # check if stack is empty
         if self.is_empty():
             raise Exception('Cannot pop from an empty stack.')
-
         # check if stack is completed
-        if self.is_completed():
+        elif self.is_completed():
             raise Exception('Cannot pop from a complete stack.')
-
-        # return item
-        return self.items.pop()
+        else:
+            # return item
+            return self.items.pop()
 
     
     def peek(self):  
@@ -88,9 +87,9 @@ class Stack:
         # check if stack empty
         if self.is_empty():
             raise Exception('Cannot peek at an empty stack.')
-
-        # return item
-        return self.items[-1]
+        else:
+            # return item
+            return self.items[-1]
          
     
     def is_empty(self):
