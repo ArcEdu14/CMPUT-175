@@ -7,12 +7,12 @@
 # Date: 2026-03-02
 # =================================================================
 
-"""
-Program Description:
 
-A music player that searches Youtube, adds songs, plays next, displays queue.
-To run from terminal: python "C:\Users\Alice C\PycharmProjects\CMPUT-175\lab5\music_queue.py"
-"""
+#Program Description:
+
+#A music player that searches Youtube, adds songs, plays next, displays queue.
+#To run from terminal: python "C:\Users\Alice C\PycharmProjects\CMPUT-175\lab5\music_queue.py"
+
 
 # Install ytmusicapi using pip or pip3
 from ytmusicapi import YTMusic

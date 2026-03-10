@@ -3,8 +3,14 @@
 # Lab 6 - Advanced Music Queue
 #
 # ~ Created by CMPUT 175 Team ~
+# edited by Alice Cai 2026-03-09
 # ============================================================
 
+"""
+Lab Description: Song and DLinkedList and DLinkedListNode classes for the music player.
+"""
+
+# DO NOT MODIFY
 def time_to_seconds(time_str):
     """
     Input: A string representing time in the format "hh:mm:ss"
@@ -25,6 +31,7 @@ def time_to_seconds(time_str):
     total_seconds = hours * 3600 + minutes * 60 + seconds
     return total_seconds
 
+# DO NOT MODIFY
 def seconds_to_time_format(seconds):
     """
     Input: Total seconds
@@ -40,6 +47,7 @@ def seconds_to_time_format(seconds):
     else:
         return f"{minutes}:{seconds:02}"
 
+# DO NOT MODIFY
 class Song:
     def __init__(self, name, artist, dur):
         """
@@ -84,6 +92,7 @@ class Song:
         """
         return f"{self.__name}\n   Artists: {self.__artist}\n   Duration: {seconds_to_time_format(self.__duration)}"
 
+# DO NOT MODIFY
 class DLinkedListNode:
     def __init__(self,initData,initNext,initPrevious):
         """
@@ -151,6 +160,8 @@ class DLinkedListNode:
 
 class DLinkedList:
     # An instance of this class represents the Doubly-Linked List
+
+    # DO NOT MODIFY __INIT__
     def __init__(self):
         """
         Input: None
@@ -169,9 +180,42 @@ class DLinkedList:
         Input: A Song object
         Returns: None
         Working:
-        Add a song right next to the current song.
+        Add a song right after the current song. If the queue is empty, the new song becomes the first item. Otherwise, the song is inserted immediately after the current song, updating the pointers accordingly.
         """
-        # TODO: Implement this method
+        # Create a new node with next None and prev None
+        newNode = DLinkedListNode(item, None, None)
+
+        # if the first node in list
+        if self.__head is None:
+            self.__head = newNode  # set new song to head
+            self.__tail = newNode  # set new song also to tail
+            self.__current = newNode  # set new current
+
+        # if inserting at the end of the list
+        elif self.__current == self.__tail:  # current is tail
+            # set new links for new node
+            # newNode.set_next(None)  # next is None (already set)
+            newNode.set_previous(self.__tail)  # set previous as current
+
+            # set new links for current node
+            self.__tail.set_next(newNode)
+
+            # set new tail to newNode
+            self.__tail = newNode
+
+        # if inserting anywhere else (after a node) in the list
+        else:
+            # set new links for new node
+            newNode.set_previous(self.__current)
+            newNode.set_next(self.__current.get_next())
+
+            # set new links for current node and node after current
+            self.__current.get_next().set_previous(newNode)  # node after current's new prev is newNode
+            self.__current.set_next(newNode)  # current's new next is newNode
+
+        # update size and duration
+        self.__size += 1
+        self.__duration += item.get_duration()
     
     def add_last(self, item: Song):
         """
@@ -180,34 +224,67 @@ class DLinkedList:
         Working:
         Add a song at the end of the Queue.
         """
-        # TODO: Implement this method
+
+        # create a new node
+        newNode = DLinkedListNode(item, None, self.__tail)
+
+        # if first node in list
+        if self.__head is None:
+            self.__head = newNode
+            self.__tail = newNode
+            self.__current = newNode
+
+        # if not first node in list
+        else:
+            # set tail's next to new node
+            self.__tail.set_next(newNode)
+            # set new tail
+            self.__tail = newNode
+
+        # increment size and duration
+        self.__size += 1
+        self.__duration += item.get_duration()
 
     def get_current(self):
         """
         Input: None
         Returns: The current song.
         Working:
-        Returns the current song.
+        Returns the current song. If queue empty, raises exception
         """
-        # TODO: Implement this method
+        # if queue is empty
+        if self.is_empty():
+            raise Exception("Queue is empty")
+
+        return self.__current.get_data()
     
     def play_next(self):
         """
         Input: None
-        Returns: None
+        Returns: True if success, False if failure
         Working:
-        Moves the current pointer to the next song.
+        Moves the current pointer to the next song. If the current song is already at the tail, no movement occurs.
         """
-        # TODO: Implement this method
+        if self.__current != self.__tail:
+            self.__current = self.__current.get_next()
+            return True
+        else:
+            # current song already at tail
+            return False
 
     def play_previous(self):
         """
         Input: None
-        Returns: None
+        Returns: True if success, False if fail
         Working:
-        Moves the current pointer to the previous song.
+        Moves the current pointer to the previous song. If the current song is the first in the list, no movement occurs.
         """
-        # TODO: Implement this method
+        if self.__current != self.__head:
+            self.__current = self.__current.get_previous()
+            return True
+        else:
+            # current song already at head
+            return False
 
     def remove_current(self):
         """
@@ -215,10 +292,42 @@ class DLinkedList:
         Returns: The current song
         Working:
         Removes the current song from the Queue.
+        Assumes queue is not empty.
         By Default, after removing the current song, the next song becomes current.
         If last song is being removed, the previous one becomes current.
         """
-        # TODO: Implement this method
+
+        # size and duration
+        self.__size -= 1
+        self.__duration -= self.__current.get_data().get_duration()
+        current = self.__current.get_data()  # store before changing self.__current
+
+        # Case 0: removing the only song from list
+        if self.__current == self.__head and self.__current == self.__tail:
+            self.__head = None
+            self.__tail = None
+            self.__current = None
+
+        # Case 1: removing first song in list
+        elif self.__current == self.__head:
+            self.__current.get_next().set_previous(None)  # set next node's prev to None
+            self.__head = self.__current.get_next()  # set new head
+            self.__current = self.__current.get_next()  # set new current
+
+        # Case 2: removing last song in list
+        elif self.__current == self.__tail:
+            self.__current.get_previous().set_next(None)  # set prev node's next to None
+            self.__tail = self.__current.get_previous()  # set new tail
+            self.__current = self.__current.get_previous()  # set new current
+
+        # Case 3: removing from the middle of the list
+        else:
+            self.__current.get_previous().set_next(self.__current.get_next())  # set prev node's next
+            self.__current.get_next().set_previous(self.__current.get_previous())  # set next node's prev
+            self.__current = self.__current.get_next()  # set new current
+
+        return current
+
         
     def get_size(self):
         """
@@ -227,21 +336,26 @@ class DLinkedList:
         Working:
         Returns the number of songs in the Queue.        
         """
-        # TODO: Implement this method
+        return self.__size
     
     def is_empty(self):
         """
         Input: None       
         Returns: True if the Queue is empty, False otherwise.
         """
-        # TODO: Implement this method
+        return self.__size == 0
 
     def clear(self):
         """
         Clears the Queue.
         """
-        # TODO: Implement this method
-      
+        self.__head = None
+        self.__tail = None
+        self.__current = None
+        self.__size = 0
+        self.__duration = 0
+
+    # DO NOT MODIFY __STR__
     def __str__(self):
         """
         Input: None
